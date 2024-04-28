@@ -5,7 +5,7 @@ import dbConnect from "./db/ConnectMongoDB.js";
 const app = express();
 dotenv.config();
 
-//* DataBase Connection
+//* DataBase Connections
 dbConnect();
 
 //* PORT Assign
