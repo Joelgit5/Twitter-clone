@@ -4,8 +4,6 @@ import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import { v2 as cloudinary } from "cloudinary";
 
-// import { generateTokenAndSetCookie } from "../utils/generateToken.js";
-
 // PATH     : /api/users/profile/:username"
 // METHOD   : GET
 // ACCESS   : PUBLIC
@@ -186,7 +184,7 @@ export const updateUser = async (req, res) => {
 
     return res.status(200).json(user);
   } catch (error) {
-    console.log("Error in getSuggestedUsers", error.message);
+    console.log("Error in updateUser", error.message);
     res.status(500).json({ error: error.message });
   }
 };

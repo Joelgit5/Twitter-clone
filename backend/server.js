@@ -7,6 +7,7 @@ import { v2 as cloudinary } from "cloudinary";
 
 import authRoutes from "./routes/auth.route.js";
 import userRoutes from "./routes/user.route.js";
+import postRoutes from "./routes/post.route.js";
 // Imports End
 
 const app = express();
@@ -28,6 +29,7 @@ app.use(cookieParser());
 //* Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/postS", postRoutes);
 
 //* PORT Assign
 const PORT = process.env.PORT || 9000;
