@@ -2,7 +2,7 @@ import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import { generateTokenAndSetCookie } from "../utils/generateToken.js";
 
-// PATH     : /api/user/signup
+// PATH     : /api/auth/signup
 // METHOD   : POST
 // ACCESS   : PUBLIC
 // DESC     : Create User
@@ -65,7 +65,7 @@ export const signup = async (req, res) => {
   }
 };
 
-// PATH     : /api/user/login
+// PATH     : /api/auth/login
 // METHOD   : POST
 // ACCESS   : PUBLIC
 // DESC     : Login a User
@@ -102,7 +102,7 @@ export const login = async (req, res) => {
   }
 };
 
-// PATH     : /api/user/logout
+// PATH     : /api/auth/logout
 // METHOD   : POST
 // ACCESS   : PUBLIC
 // DESC     : Logout a User
@@ -116,7 +116,7 @@ export const logout = async (req, res) => {
   }
 };
 
-// PATH     : /api/user/me
+// PATH     : /api/auth/me
 // METHOD   : POST
 // ACCESS   : PUBLIC
 // DESC     : Check User authenticated
