@@ -4,13 +4,14 @@ import { Link } from "react-router-dom";
 import XSvg from "../../components/svgs/X";
 
 import { Eye, EyeOff, KeyRound, Mail } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 // Imports End
 
 const LoginPage = () => {
-  const [isShow, setIsShow] = useState(false);
+  const [isShowPassword, setIsShowPassword] = useState(false);
 
   const togglePassword = () => {
-    setIsShow(!isShow);
+    setIsShowPassword(!isShowPassword);
   };
 
   const [formData, setFormData] = useState({
@@ -18,8 +19,39 @@ const LoginPage = () => {
     password: "",
   });
 
+  const queryClient = useQueryClient();
+
+  const {
+    mutate: loginMutation,
+    isError,
+    isPending,
+    error,
+  } = useMutation({
+    mutationFn: async ({ email, password }) => {
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to create account");
+
+        console.log(data);
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["authUser"] });
+    },
+  });
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    loginMutation(formData);
   };
 
   const handleInputChange = (e) => {
@@ -59,25 +91,25 @@ const LoginPage = () => {
           <label className="input input-bordered rounded flex items-center gap-2">
             <KeyRound size={20} />
             <input
-              type={isShow ? "text" : "password"}
+              type={isShowPassword ? "text" : "password"}
               className="grow"
               placeholder="Password"
               name="password"
               onChange={handleInputChange}
               value={formData.password}
             />
-            <div
-              onClick={togglePassword}
-              className="toggle-password position-absolute d-flex align-items-center justify-content-center"
-            >
-              {isShow ? <Eye size={20} /> : <EyeOff size={20} />}
+            <div onClick={togglePassword}>
+              {isShowPassword ? <Eye size={20} /> : <EyeOff size={20} />}
             </div>
           </label>
 
           <button className="btn rounded-full btn-primary text-white mt-2">
-            Login
+            {isPending ? "Loading..." : "Login"}
           </button>
+
+          {isError && <p className="text-red-500">{error.message}</p>}
         </form>
+
         <div className="flex flex-col gap-2 mt-4">
           <p className="text-white text-lg">{"Don't"} have an account?</p>
           <Link to="/signup">
