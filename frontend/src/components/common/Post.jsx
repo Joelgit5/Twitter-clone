@@ -36,11 +36,14 @@ const Post = ({ post }) => {
         <div className="flex flex-col flex-1">
           <div className="flex gap-2 items-center">
             {/* User Name */}
-            <Link to={`/profile/${postOwner.username}`} className="font-bold">
+            <Link
+              to={`/profile/${postOwner.username}`}
+              className="font-bold text-sm lg:text-base"
+            >
               {postOwner.fullName}
             </Link>
 
-            <span className="text-gray-700 flex gap-1 text-sm">
+            <span className="text-gray-700 gap-1 text-sm hidden lg:flex">
               <Link to={`/profile/${postOwner.username}`}>
                 @{postOwner.username}
               </Link>
@@ -56,11 +59,12 @@ const Post = ({ post }) => {
                 <Trash
                   onClick={handleDeletePost}
                   className="cursor-pointer hover:text-red-500"
+                  size={22}
                 />
               </span>
             )}
           </div>
-          <div className="flex flex-col gap-3 overflow-hidden">
+          <div className="flex flex-col gap-5 overflow-hidden text-sm lg:text-base">
             <span>{post.text}</span>
 
             {post.img && (
