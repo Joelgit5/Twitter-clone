@@ -2,22 +2,57 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { Bookmark, Heart, MessageCircle, Repeat2, Trash } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import LoadingSpinner from "./LoadingSpinner";
 // Imports End
 
 const Post = ({ post }) => {
-  const [comment, setComment] = useState("");
   const postOwner = post.user;
 
+  const [comment, setComment] = useState("");
+
+  const queryClient = useQueryClient();
+
+  // Mutation to delete a post
+  const { mutate: deletePost, isPending } = useMutation({
+    mutationFn: async () => {
+      try {
+        const res = await fetch(`/api/posts/${post._id}`, {
+          method: "DELETE",
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to delete post");
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success("Post deletedsuccessfully");
+      // invalidate the query to refetch the data
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
+  });
+
+  // Fetch the authenticated user
+  const { data: authUser } = useQuery({ queryKey: ["authUser"] });
+
+  const isMyPost = authUser._id === post.user._id;
+
   const isLiked = false;
-  const isMyPost = true;
   const formattedDate = "1h";
   const isCommenting = false;
+
+  const handleDeletePost = () => {
+    deletePost();
+  };
 
   const handlePostComment = (e) => {
     e.preventDefault();
   };
 
-  const handleDeletePost = () => {};
   const handleLikePost = () => {};
 
   return (
@@ -56,14 +91,19 @@ const Post = ({ post }) => {
             {/* Delete Post */}
             {isMyPost && (
               <span className="flex justify-end flex-1">
-                <Trash
-                  onClick={handleDeletePost}
-                  className="cursor-pointer hover:text-red-500"
-                  size={22}
-                />
+                {!isPending && (
+                  <Trash
+                    onClick={handleDeletePost}
+                    className="cursor-pointer hover:text-red-500"
+                    size={22}
+                  />
+                )}
+
+                {isPending && <LoadingSpinner size="sm" />}
               </span>
             )}
           </div>
+
           <div className="flex flex-col gap-5 overflow-hidden text-sm lg:text-base">
             <span>{post.text}</span>
 

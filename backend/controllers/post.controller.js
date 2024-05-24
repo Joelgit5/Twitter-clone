@@ -57,7 +57,7 @@ export const deletePost = async (req, res) => {
       await cloudinary.uploader.destroy(imgId);
     }
 
-    await Post.findOneAndDelete(id);
+    await Post.findByIdAndDelete(id);
     res.status(200).json("Post deleted successfully");
   } catch (error) {
     console.log("Error in deletePost Controller", error.message);
