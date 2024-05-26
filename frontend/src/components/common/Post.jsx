@@ -13,12 +13,13 @@ const Post = ({ post }) => {
   const [comment, setComment] = useState("");
 
   const queryClient = useQueryClient();
-
   // Fetch the authenticated user
   const { data: authUser } = useQuery({ queryKey: ["authUser"] });
 
   const postOwner = post.user;
   const isMyPost = authUser._id === post.user._id;
+  const isLiked = post.likes.includes(authUser._id);
+  const formattedDate = "1h";
 
   // Mutation to delete a post
   const { mutate: deletePost, isPending: isDeleting } = useMutation({
@@ -75,9 +76,40 @@ const Post = ({ post }) => {
     },
   });
 
-  const isLiked = post.likes.includes(authUser._id);
-  const formattedDate = "1h";
-  const isCommenting = true;
+  // Mutation to comment a post
+  const { mutate: commentPost, isPending: isCommenting } = useMutation({
+    mutationFn: async () => {
+      try {
+        const res = await fetch(`/api/posts/comment/${post._id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ text: comment }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "Something went wrong");
+        }
+
+        return data;
+      } catch (error) {
+        throw new Error(error);
+      }
+    },
+
+    onSuccess: () => {
+      setComment("");
+      toast.success("Comment added successfully");
+      // invalidate the query to refetch the data
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
+
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
   const handleDeletePost = () => {
     deletePost();
@@ -90,6 +122,8 @@ const Post = ({ post }) => {
 
   const handlePostComment = (e) => {
     e.preventDefault();
+    if (isCommenting) return;
+    commentPost();
   };
 
   return (
@@ -208,7 +242,7 @@ const Post = ({ post }) => {
                               {comment.user.fullName}
                             </span>
 
-                            <span className="text-gray-700 text-sm">
+                            <span className="text-gray-700 text-sm hidden md:flex">
                               @{comment.user.username}
                             </span>
                           </div>
