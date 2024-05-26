@@ -1,36 +1,58 @@
 import { Link } from "react-router-dom";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 
-import { Heart, Settings, UserRound } from "lucide-react";
+import { Heart, MessageCircle, Settings, UserRound } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 // Imports End
 
 const NotificationPage = () => {
-  const isLoading = false;
-  const notifications = [
-    {
-      _id: "1",
-      from: {
-        _id: "1",
-        username: "johndoe",
-        profileImg: "/avatars/boy2.png",
-      },
-      type: "follow",
-    },
+  const queryClient = useQueryClient();
 
-    {
-      _id: "2",
-      from: {
-        _id: "2",
-        username: "janedoe",
-        profileImg: "/avatars/girl1.png",
-      },
-      type: "like",
-    },
-  ];
+  // Fetch notifications data from the server
+  const { data: notifications, isLoading } = useQuery({
+    queryKey: ["notifications"],
 
-  const deleteNotifications = () => {
-    alert("All notifications deleted");
-  };
+    queryFn: async () => {
+      try {
+        const res = await fetch("/api/notifications/");
+        const data = await res.json();
+        if (data.error) return null;
+
+        if (!res.ok) {
+          throw new Error(data.error || "Something went wrong");
+        }
+
+        return data;
+      } catch (error) {
+        throw new Error(error);
+      }
+    },
+    retry: false,
+  });
+
+  // Mutation to delete notifications
+  const { mutate: deleteNotifications } = useMutation({
+    mutationFn: async () => {
+      try {
+        const res = await fetch("api/notifications", {
+          method: "DELETE",
+        });
+
+        const data = await res.json();
+        if (!res.ok)
+          throw new Error(data.error || "Failed to delete notifications");
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success("Notifications deleted successfully");
+      // invalidate the query to refetch the data
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
 
   return (
     <>
@@ -38,7 +60,7 @@ const NotificationPage = () => {
         <div className="flex justify-between items-center p-4 border-b border-gray-700">
           <p className="font-bold">Notifications</p>
 
-          <div className="dropdown ">
+          <div className="dropdown dropdown-end ">
             <div tabIndex={0} role="button" className="m-1">
               <Settings className="w-4" />
             </div>
@@ -68,15 +90,19 @@ const NotificationPage = () => {
           <div key={notification._id} className="border-b border-gray-700">
             <div className="flex gap-2 p-4">
               {notification.type === "follow" && (
-                <UserRound className="w-7 h-7 text-primary" />
+                <UserRound className="w-7 h-7 text-green-500" />
               )}
 
               {notification.type === "like" && (
                 <Heart className="w-7 h-7 text-red-500" />
               )}
 
+              {notification.type === "comment" && (
+                <MessageCircle className="w-7 h-7 text-sky-400" />
+              )}
+
               <Link to={`/profile/${notification.from.username}`}>
-                <div className="avatar">
+                <div className="avatar flex items-center gap-2">
                   <div className="w-8 rounded-full">
                     <img
                       src={
@@ -85,16 +111,37 @@ const NotificationPage = () => {
                       }
                     />
                   </div>
+                  <span className="font-bold">
+                    {notification.from.fullName}
+                  </span>
                 </div>
 
-                <div className="flex gap-1">
-                  <span className="font-bold">
-                    @{notification.from.username}
-                  </span>{" "}
-                  {notification.type === "follow"
-                    ? "followed you"
-                    : "liked your post"}
-                </div>
+                {notification.type === "follow" && (
+                  <div className="flex gap-1">
+                    <span className="font-bold">
+                      @{notification.from.username}
+                    </span>{" "}
+                    followed you
+                  </div>
+                )}
+
+                {notification.type === "like" && (
+                  <div className="flex gap-1">
+                    <span className="font-bold">
+                      @{notification.from.username}
+                    </span>{" "}
+                    liked your post
+                  </div>
+                )}
+
+                {notification.type === "comment" && (
+                  <div className="flex gap-1">
+                    <span className="font-bold">
+                      @{notification.from.username}
+                    </span>{" "}
+                    commented on your post
+                  </div>
+                )}
               </Link>
             </div>
           </div>
