@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { Bookmark, Heart, MessageCircle, Repeat2, Trash } from "lucide-react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { formatPostDate } from "../../utils/date";
 // Imports End
 
 const Post = ({ post }) => {
@@ -19,7 +20,7 @@ const Post = ({ post }) => {
   const postOwner = post.user;
   const isMyPost = authUser._id === post.user._id;
   const isLiked = post.likes.includes(authUser._id);
-  const formattedDate = "1h";
+  const formattedDate = formatPostDate(post.createdAt);
 
   // Mutation to delete a post
   const { mutate: deletePost, isPending: isDeleting } = useMutation({
