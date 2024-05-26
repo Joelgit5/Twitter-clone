@@ -1,13 +1,16 @@
-import { useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { CalendarRange, ExternalLink, MoveLeft, Pencil } from "lucide-react";
 
-import Posts from "../../components/common/Posts";
 import { POSTS } from "../../utils/db/dummy";
 
-import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton";
 import EditProfileModal from "./EditProfileModal";
+import Posts from "../../components/common/Posts";
+import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton";
 
-import { CalendarRange, ExternalLink, MoveLeft, Pencil } from "lucide-react";
+import { formatMemberSinceDate } from "../../utils/date";
+
+import { useQuery } from "@tanstack/react-query";
 // Imports End
 
 const ProfilePage = () => {
@@ -15,23 +18,39 @@ const ProfilePage = () => {
   const [profileImg, setProfileImg] = useState(null);
   const [feedType, setFeedType] = useState("posts");
 
+  const { username } = useParams();
+
+  // Fetch User Profile data from the server
+  const {
+    data: user,
+    isLoading,
+    refetch,
+    isRefetching,
+  } = useQuery({
+    queryKey: ["userProfile"],
+    queryFn: async () => {
+      try {
+        const res = await fetch(`/api/users/profile/${username}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Something went wrong");
+        }
+
+        return data;
+      } catch (error) {
+        throw new Error(error);
+      }
+    },
+  });
+  useEffect(() => {
+    refetch();
+  }, [refetch, username]);
+
   const coverImgRef = useRef(null);
   const profileImgRef = useRef(null);
 
-  const isLoading = false;
   const isMyProfile = true;
-
-  const user = {
-    _id: "1",
-    fullName: "John Doe",
-    username: "johndoe",
-    profileImg: "/avatars/boy2.png",
-    coverImg: "/cover.png",
-    bio: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    link: "https://youtube.com/@asaprogrammer_",
-    following: ["1", "2", "3"],
-    followers: ["1", "2", "3"],
-  };
 
   const handleImgChange = (e, state) => {
     const file = e.target.files[0];
@@ -49,18 +68,18 @@ const ProfilePage = () => {
     <>
       <div className="flex-[4_4_0]  border-r border-gray-700 min-h-screen ">
         {/* HEADER */}
-        {isLoading && <ProfileHeaderSkeleton />}
+        {(isLoading || isRefetching) && <ProfileHeaderSkeleton />}
 
-        {!isLoading && !user && (
+        {!isLoading && !isRefetching && !user && (
           <p className="text-center text-lg mt-4">User not found</p>
         )}
 
         <div className="flex flex-col">
-          {!isLoading && user && (
+          {!isLoading && !isRefetching && user && (
             <>
               <div className="flex gap-10 px-4 py-2 items-center">
                 <Link to="/">
-                  <MoveLeft className="w-4 h-4" />
+                  <MoveLeft className="w-5 h-5" />
                 </Link>
 
                 <div className="flex flex-col">
@@ -181,26 +200,26 @@ const ProfilePage = () => {
                   <div className="flex gap-2 items-center">
                     <CalendarRange className="w-4 h-4 text-slate-500" />
                     <span className="text-sm text-slate-500">
-                      Joined July 2021
+                      {formatMemberSinceDate(user?.createdAt)}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-4">
                   <div className="flex gap-1 items-center">
-                    <span className="font-bold text-xs">
+                    <span className="font-bold text-md">
                       {user?.following.length}
                     </span>
 
-                    <span className="text-slate-500 text-xs">Following</span>
+                    <span className="text-slate-500 text-md">Following</span>
                   </div>
 
                   <div className="flex gap-1 items-center">
-                    <span className="font-bold text-xs">
+                    <span className="font-bold text-md">
                       {user?.followers.length}
                     </span>
 
-                    <span className="text-slate-500 text-xs">Followers</span>
+                    <span className="text-slate-500 text-md">Followers</span>
                   </div>
                 </div>
               </div>
@@ -230,7 +249,7 @@ const ProfilePage = () => {
           )}
 
           {/* Posts Component */}
-          <Posts />
+          <Posts feedType={feedType} username={username} userId={user?._id} />
         </div>
       </div>
     </>
