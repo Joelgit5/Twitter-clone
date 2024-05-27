@@ -51,24 +51,9 @@ const userSchema = new mongoose.Schema(
       default: "",
     },
 
-    socialLinks: {
-      youtube: {
-        type: String,
-        default: "",
-      },
-      instagram: {
-        type: String,
-        default: "",
-      },
-      twitter: {
-        type: String,
-        default: "",
-      },
-      tiktok: {
-        type: String,
-        default: "",
-      },
-      // Add more social links as needed
+    link: {
+      type: String,
+      default: "",
     },
 
     likedPosts: [

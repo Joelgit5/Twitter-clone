@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import useUpdateUserProfile from "../../components/hooks/useUpdateUserProfile";
+// Imports End
 
-const EditProfileModal = () => {
+const EditProfileModal = ({ authUser }) => {
   const [formData, setFormData] = useState({
     fullName: "",
     username: "",
@@ -11,14 +13,30 @@ const EditProfileModal = () => {
     currentPassword: "",
   });
 
+  const { updateProfile, isUpdatingProfile } = useUpdateUserProfile();
+
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  useEffect(() => {
+    if (authUser) {
+      setFormData({
+        fullName: authUser.fullName,
+        username: authUser.username,
+        email: authUser.email,
+        bio: authUser.bio,
+        link: authUser.link,
+        newPassword: "",
+        currentPassword: "",
+      });
+    }
+  }, [authUser]);
+
   return (
     <>
       <button
-        className="btn btn-outline rounded-full btn-sm"
+        className="btn btn-outline rounded-full btn-sm mt-10 lg:mt-0"
         onClick={() =>
           document.getElementById("edit_profile_modal").showModal()
         }
@@ -34,7 +52,7 @@ const EditProfileModal = () => {
             className="flex flex-col gap-4"
             onSubmit={(e) => {
               e.preventDefault();
-              alert("Profile updated successfully");
+              updateProfile(formData);
             }}
           >
             {/* Full Name */}
@@ -56,8 +74,10 @@ const EditProfileModal = () => {
                 value={formData.username}
                 name="username"
                 onChange={handleInputChange}
+                disabled
               />
             </div>
+
             {/* Email */}
             <div className="flex flex-wrap gap-2">
               <input
@@ -67,6 +87,7 @@ const EditProfileModal = () => {
                 value={formData.email}
                 name="email"
                 onChange={handleInputChange}
+                disabled
               />
 
               {/* Link */}
@@ -79,6 +100,7 @@ const EditProfileModal = () => {
                 onChange={handleInputChange}
               />
             </div>
+
             {/* Current Password */}
             <div className="flex flex-wrap gap-2">
               <input
@@ -112,7 +134,7 @@ const EditProfileModal = () => {
 
             {/* Update Button */}
             <button className="btn btn-primary rounded-full btn-sm text-white">
-              Update
+              {isUpdatingProfile ? "Updating..." : "Update"}
             </button>
           </form>
         </div>
@@ -124,4 +146,5 @@ const EditProfileModal = () => {
     </>
   );
 };
+
 export default EditProfileModal;

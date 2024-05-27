@@ -10,6 +10,8 @@ import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkele
 
 import { formatMemberSinceDate } from "../../utils/date";
 
+import useFollow from "../../components/hooks/useFollow";
+import useUpdateUserProfile from "../../components/hooks/useUpdateUserProfile";
 import { useQuery } from "@tanstack/react-query";
 // Imports End
 
@@ -19,6 +21,9 @@ const ProfilePage = () => {
   const [feedType, setFeedType] = useState("posts");
 
   const { username } = useParams();
+
+  const { follow, isPending } = useFollow();
+  const { data: authUser } = useQuery({ queryKey: ["authUser"] });
 
   // Fetch User Profile data from the server
   const {
@@ -43,14 +48,18 @@ const ProfilePage = () => {
       }
     },
   });
+
   useEffect(() => {
     refetch();
   }, [refetch, username]);
 
+  // Mutation to update Profile img & Cover Img
+  const { updateProfile, isUpdatingProfile } = useUpdateUserProfile();
+
   const coverImgRef = useRef(null);
   const profileImgRef = useRef(null);
 
-  const isMyProfile = true;
+  const isMyProfile = authUser._id === user?._id;
 
   const handleImgChange = (e, state) => {
     const file = e.target.files[0];
@@ -63,6 +72,8 @@ const ProfilePage = () => {
       reader.readAsDataURL(file);
     }
   };
+
+  const amIFollowing = authUser?.following.includes(user?._id);
 
   return (
     <>
@@ -148,28 +159,34 @@ const ProfilePage = () => {
               </div>
 
               <div className="flex justify-end px-4 mt-5">
-                {isMyProfile && <EditProfileModal />}
+                {isMyProfile && <EditProfileModal authUser={authUser} />}
 
                 {!isMyProfile && (
                   <button
                     className="btn btn-outline rounded-full btn-sm"
-                    onClick={() => alert("Followed successfully")}
+                    onClick={() => follow(user?._id)}
                   >
-                    Follow
+                    {isPending && "Loading..."}
+                    {!isPending && amIFollowing && "Unfollow"}
+                    {!isPending && !amIFollowing && "Follow"}
                   </button>
                 )}
 
                 {(coverImg || profileImg) && (
                   <button
-                    className="btn btn-primary rounded-full btn-sm text-white px-4 ml-2"
-                    onClick={() => alert("Profile updated successfully")}
+                    className="btn btn-primary rounded-full btn-sm text-white px-4 ml-2 mt-10 lg:mt-0"
+                    onClick={async () => {
+                      await updateProfile({ coverImg, profileImg });
+                      setProfileImg(null);
+                      setCoverImg(null);
+                    }}
                   >
-                    Update
+                    {isUpdatingProfile ? "Updating..." : "Update"}
                   </button>
                 )}
               </div>
 
-              <div className="flex flex-col gap-4 mt-14 px-4">
+              <div className="flex flex-col gap-4 mt-10 px-4">
                 <div className="flex flex-col">
                   <span className="font-bold text-lg">{user?.fullName}</span>
 
@@ -186,12 +203,12 @@ const ProfilePage = () => {
                       <>
                         <ExternalLink className="w-3 h-3 text-slate-500" />
                         <a
-                          href="https://youtube.com/@asaprogrammer_"
+                          href={user.link}
                           target="_blank"
                           rel="noreferrer"
                           className="text-sm text-blue-500 hover:underline"
                         >
-                          youtube.com/@asaprogrammer_
+                          Social Media
                         </a>
                       </>
                     </div>
