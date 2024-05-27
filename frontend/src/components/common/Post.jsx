@@ -61,15 +61,8 @@ const Post = ({ post }) => {
       }
     },
 
-    onSuccess: (updatedLikes) => {
-      queryClient.setQueryData(["posts"], (oldData) => {
-        return oldData.map((p) => {
-          if (p._id === post._id) {
-            return { ...p, likes: updatedLikes };
-          }
-          return p;
-        });
-      });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
 
     onError: (error) => {

@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { CalendarRange, ExternalLink, MoveLeft, Pencil } from "lucide-react";
 
-import { POSTS } from "../../utils/db/dummy";
-
 import EditProfileModal from "./EditProfileModal";
 import Posts from "../../components/common/Posts";
 import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton";
@@ -53,7 +51,6 @@ const ProfilePage = () => {
     refetch();
   }, [refetch, username]);
 
-  // Mutation to update Profile img & Cover Img
   const { updateProfile, isUpdatingProfile } = useUpdateUserProfile();
 
   const coverImgRef = useRef(null);
@@ -93,12 +90,8 @@ const ProfilePage = () => {
                   <MoveLeft className="w-5 h-5" />
                 </Link>
 
-                <div className="flex flex-col">
+                <div className="flex flex-col py-2">
                   <p className="font-bold text-lg">{user?.fullName}</p>
-
-                  <span className="text-sm text-slate-500">
-                    {POSTS?.length} posts
-                  </span>
                 </div>
               </div>
 
