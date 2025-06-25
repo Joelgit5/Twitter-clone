@@ -1,20 +1,18 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-
-import LoadingSpinner from "./LoadingSpinner";
-
 import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
 import { Bookmark, Heart, MessageCircle, Repeat2, Trash } from "lucide-react";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import LoadingSpinner from "./LoadingSpinner";
 import { formatPostDate } from "../../utils/date";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 // Imports End
 
 const Post = ({ post }) => {
   const [comment, setComment] = useState("");
 
   const queryClient = useQueryClient();
-  // Fetch the authenticated user
   const { data: authUser } = useQuery({ queryKey: ["authUser"] });
 
   const postOwner = post.user;
@@ -39,7 +37,6 @@ const Post = ({ post }) => {
     },
     onSuccess: () => {
       toast.success("Post deleted successfully");
-      // invalidate the query to refetch the data
       queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
   });
